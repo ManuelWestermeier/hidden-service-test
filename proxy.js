@@ -12,30 +12,7 @@ if (!fs.existsSync(hsDir)) {
 
 // ---- Node.js Webserver starten -----------------------------------------
 
-const PORT = 8080;
-
-let count = 0;
-const server = http.createServer((req, res) => {
-    console.log(`=== Anfrage ${++count} ===`);
-    console.log("Methode:", req.method);
-    console.log("URL:", req.url);
-    console.log("Headers:", req.headers);
-
-    // Optional: den Body loggen (z.B. bei POST)
-    let body = [];
-    req.on("data", chunk => body.push(chunk));
-    req.on("end", () => {
-        body = Buffer.concat(body).toString();
-        if (body) console.log("Body:", body);
-    });
-
-    res.writeHead(200, { "Content-Type": "text/html" });
-    res.end(fs.readFileSync("./pages/index.html"));
-});
-
-server.listen(PORT, () => {
-    console.log("Node.js Webserver läuft auf Port", PORT);
-});
+const PORT = 80;
 
 // ---- Tor Hidden Service starten ----------------------------------------
 
@@ -46,7 +23,7 @@ console.log("Starte Tor Hidden Service ...");
 const tor = spawn("C:/Program Files/Tor Browser/Browser/TorBrowser/Tor/tor.exe", [
     "--quiet",
     "--HiddenServiceDir", hsDir,
-    "--HiddenServicePort", `80 127.0.0.1:${PORT}`,
+    "--HiddenServicePort", `80 manuel-westermeier.onrender.com:${PORT}`,
     "--SOCKSPort", "0",     // Kein Socks-Proxy nötig
 ]);
 
