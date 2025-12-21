@@ -1,31 +1,33 @@
-Clear-Host
 $ErrorActionPreference = "Stop"
 
 # -----------------------
 # Configuration
 # -----------------------
-$P           = $PSScriptRoot
-$BaseDir     = Join-Path $P "tor-exe"
-$Archive     = Join-Path $P "tor-expert.tar.gz"
-$TorExe      = Join-Path $BaseDir "tor.exe"
-$DataDir     = Join-Path $P "tor-data"
-$OnionUrl    = "https://duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion/"
-$TorUrl      = "https://archive.torproject.org/tor-package-archive/torbrowser/15.0.3/tor-expert-bundle-windows-x86_64-15.0.3.tar.gz"
-$TorPort     = 9050
+$P = $PSScriptRoot
+$BaseDir = Join-Path $P "tor-exe"
+$Archive = Join-Path $P "tor-expert.tar.gz"
+$TorExe = Join-Path $BaseDir "tor.exe"
+$DataDir = Join-Path $P "tor-data"
+$IndexFile = Join-Path $P "index.data"
+$OnionUrl = "https://duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion/"
+$TorUrl = "https://archive.torproject.org/tor-package-archive/torbrowser/15.0.3/tor-expert-bundle-windows-x86_64-15.0.3.tar.gz"
+$TorPort = 9050
 
-# curl timeouts (seconds)
 $CurlConnectTimeout = 15
 $CurlMaxTime = 60
-
-# wait settings
 $PortWaitTimeoutSec = 60
 $PortPollIntervalSec = 1
 
 # -----------------------
-# Helper: robust curl
+# Helper functions
 # -----------------------
 function Run-Curl {
-    param([string[]] $Args, [switch] $VerboseOutput)
+    param(
+        [string[]] $Args,
+        [switch] $VerboseOutput,
+        [string] $OutFile
+    )
+
     $common = @(
         "--socks5-hostname", "127.0.0.1:$TorPort",
         "--connect-timeout", $CurlConnectTimeout.ToString(),
@@ -34,25 +36,47 @@ function Run-Curl {
     )
     $fullArgs = $common + $Args
 
+    if ($OutFile) {
+        $outDir = Split-Path $OutFile -Parent
+        if ($outDir -and -not (Test-Path $outDir)) { New-Item -ItemType Directory -Force -Path $outDir | Out-Null }
+        $fullArgs += @("-o", $OutFile)
+    }
+
     if ($VerboseOutput) {
-        Write-Host "[DEBUG] curl.exe " ($fullArgs -join " ")
         & curl.exe @fullArgs 2>&1 | Out-Host
-    } else {
+    }
+    else {
         & curl.exe @fullArgs | Out-Null
     }
 
     return $LASTEXITCODE
 }
 
-# -----------------------
-# Helper: wait for local port
-# -----------------------
 function Wait-For-Port {
-    param([string] $Host="127.0.0.1", [int] $Port, [int] $TimeoutSec=60, [int] $PollIntervalSec=1)
+    param(
+        [string] $TargetHost = "127.0.0.1",
+        [int] $Port,
+        [int] $TimeoutSec = 60,
+        [int] $PollIntervalSec = 1
+    )
+
     $deadline = (Get-Date).AddSeconds($TimeoutSec)
     while ((Get-Date) -lt $deadline) {
-        $res = Test-NetConnection -ComputerName $Host -Port $Port -WarningAction SilentlyContinue
-        if ($res.TcpTestSucceeded) { return $true }
+        try {
+            $client = New-Object System.Net.Sockets.TcpClient
+            $async = $client.BeginConnect($TargetHost, $Port, $null, $null)
+            if ($async.AsyncWaitHandle.WaitOne([TimeSpan]::FromSeconds($PollIntervalSec))) {
+                $client.EndConnect($async)
+                $client.Close()
+                return $true
+            }
+            else {
+                $client.Close()
+            }
+        }
+        catch {
+            # ignore and retry
+        }
         Start-Sleep -Seconds $PollIntervalSec
     }
     return $false
@@ -65,69 +89,50 @@ $torProcess = $null
 $uaBrowser = "Mozilla/5.0 (Windows NT 10.0; rv:128.0) Gecko/20100101 Firefox/128.0"
 
 try {
-    # -----------------------
-    # Download Tor if missing
-    # -----------------------
+    if (-not (Get-Command curl.exe -ErrorAction SilentlyContinue)) {
+        throw "curl.exe not found. Please install curl or use a Windows 10+ system with curl included."
+    }
+
+    # Download & extract Tor if needed
     if (-not (Test-Path $TorExe)) {
-        Write-Host "[INFO] tor.exe not found. Downloading Tor Expert Bundle ..." -ForegroundColor Cyan
-        Invoke-WebRequest -Uri $TorUrl -OutFile $Archive
+        Write-Host "Downloading Tor expert bundle..."
+        Invoke-WebRequest -Uri $TorUrl -OutFile $Archive -UseBasicParsing
 
         if ((Get-Item $Archive).Length -lt 5MB) {
+            Remove-Item -Force $Archive -ErrorAction SilentlyContinue
             throw "Download failed or archive too small."
         }
 
         New-Item -ItemType Directory -Force -Path $BaseDir | Out-Null
-        Write-Host "[INFO] Extracting Tor Expert Bundle ..." -ForegroundColor Cyan
         tar.exe -xzf $Archive -C $BaseDir --strip-components=1
         Remove-Item $Archive -Force
 
-        if (-not (Test-Path $TorExe)) {
-            throw "tor.exe not found after extraction."
-        }
+        if (-not (Test-Path $TorExe)) { throw "tor.exe not found after extraction." }
+        Write-Host "Tor extracted to $BaseDir"
+    }
+    else {
+        Write-Host "Tor executable already present: $TorExe"
     }
 
-    # -----------------------
-    # Ensure data dir exists
-    # -----------------------
     if (-not (Test-Path $DataDir)) { New-Item -ItemType Directory -Force -Path $DataDir | Out-Null }
 
     # -----------------------
-    # Start Tor
+    # Start Tor process directly
     # -----------------------
-    Write-Host "[INFO] Starting tor.exe ..." -ForegroundColor Cyan
-    $argString = "--SocksPort $TorPort --DataDirectory `"$DataDir`""
-    $torProcess = Start-Process -FilePath $TorExe -ArgumentList $argString -PassThru -WindowStyle Hidden
+    $torArgs = @("--SocksPort", $TorPort, "--DataDirectory", "`"$DataDir`"", "--Log", "notice stdout")
+    Write-Host "Starting tor.exe..."
+    $torProcess = Start-Process -FilePath $TorExe -ArgumentList $torArgs -PassThru -NoNewWindow
 
-    # Wait for SOCKS port
-    Write-Host "[INFO] Waiting for SOCKS port 127.0.0.1:$TorPort ..." -ForegroundColor Cyan
-    if (-not (Wait-For-Port -Port $TorPort -TimeoutSec $PortWaitTimeoutSec -PollIntervalSec $PortPollIntervalSec)) {
-        throw "Timeout waiting for SOCKS port."
-    }
-    Write-Host "[OK] SOCKS port open." -ForegroundColor Green
-
-    # -----------------------
-    # Fetch onion URL
-    # -----------------------
-    Write-Host "`n===== Fetching onion URL =====" -ForegroundColor Yellow
-    $code = Run-Curl -Args @("-L", "-A", $uaBrowser, $OnionUrl)
-
-    if ($code -eq 0) {
-        Write-Host "[OK] Content successfully retrieved." -ForegroundColor Green
-        exit 0
-    } else {
-        Write-Host "[ERROR] Fetch failed with exit code $code — showing verbose output:" -ForegroundColor Red
-        Run-Curl -Args @("-L", "-A", $uaBrowser, $OnionUrl) -VerboseOutput
-        exit 1
-    }
+    # print content of the side $OnionUrl    
 }
 catch {
-    Write-Host "[EXCEPTION] $($_.Exception.Message)" -ForegroundColor Red
+    Write-Error "Error: $_"
     exit 1
 }
 finally {
+    # Stop Tor process
     if ($torProcess -and -not $torProcess.HasExited) {
-        Write-Host "[INFO] Stopping Tor process ..." -ForegroundColor Cyan
-        try { $torProcess.Kill() } catch { Stop-Process -Id $torProcess.Id -Force -ErrorAction SilentlyContinue }
+        Write-Host "Stopping Tor..."
+        try { $torProcess.Kill() } catch { Stop-Process -Id $torProcess.Id -ErrorAction SilentlyContinue }
     }
 }
-Write-Host "[INFO] Done." -ForegroundColor Cyan
