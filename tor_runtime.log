@@ -1,0 +1,27 @@
+Dec 21 18:59:30.000 [notice] Tor 0.4.8.21 (git-add2400e16d88534) opening new log file.
+Dec 21 18:59:30.624 [notice] We compiled with OpenSSL 30500040: OpenSSL 3.5.4 30 Sep 2025 and we are running with OpenSSL 30500040: 3.5.4. These two versions should be binary compatible.
+Dec 21 18:59:30.624 [notice] Tor 0.4.8.21 (git-add2400e16d88534) running on Windows 8 [or later] with Libevent 2.1.12-stable, OpenSSL 3.5.4, Zlib 1.3.1, Liblzma N/A, Libzstd N/A and Unknown N/A as libc.
+Dec 21 18:59:30.624 [notice] Tor can't help you if you use it wrong! Learn how to be safe at https://support.torproject.org/faq/staying-anonymous/
+Dec 21 18:59:30.647 [notice] Configuration file "C:\Users\Manuel Westermeier\AppData\Roaming\tor\torrc" not present, using reasonable defaults.
+Dec 21 18:59:30.647 [warn] Path for DataDirectory (.\tor-data) is relative and will resolve to C:\Users\Manuel Westermeier\Documents\WebProjecte\11\hidden-service-test\tor-data. Is this what you wanted?
+Dec 21 18:59:30.647 [warn] Path for GeoIPFile (<default>) is relative and will resolve to C:\Users\Manuel Westermeier\Documents\WebProjecte\11\hidden-service-test\<default>. Is this what you wanted?
+Dec 21 18:59:30.647 [warn] Path for GeoIPv6File (<default>) is relative and will resolve to C:\Users\Manuel Westermeier\Documents\WebProjecte\11\hidden-service-test\<default>. Is this what you wanted?
+Dec 21 18:59:30.647 [notice] Opening Socks listener on 127.0.0.1:9050
+Dec 21 18:59:30.647 [notice] Opened Socks listener connection (ready) on 127.0.0.1:9050
+Dec 21 18:59:30.000 [notice] Set list of supported TLS groups to: ?*X25519MLKEM768 / ?SecP256r1MLKEM768 / *P-256:?X25519:P-224
+Dec 21 18:59:30.000 [notice] Bootstrapped 0% (starting): Starting
+Dec 21 18:59:30.000 [notice] Starting with guard context "default"
+Dec 21 18:59:31.000 [notice] Bootstrapped 5% (conn): Connecting to a relay
+Dec 21 18:59:31.000 [notice] Bootstrapped 10% (conn_done): Connected to a relay
+Dec 21 18:59:32.000 [notice] Bootstrapped 14% (handshake): Handshaking with a relay
+Dec 21 18:59:32.000 [notice] Bootstrapped 15% (handshake_done): Handshake with a relay done
+Dec 21 18:59:32.000 [notice] Bootstrapped 20% (onehop_create): Establishing an encrypted directory connection
+Dec 21 18:59:32.000 [notice] Bootstrapped 25% (requesting_status): Asking for networkstatus consensus
+Dec 21 18:59:32.000 [notice] Bootstrapped 30% (loading_status): Loading networkstatus consensus
+Dec 21 18:59:42.000 [notice] I learned some more directory information, but not enough to build a circuit: We have no usable consensus.
+Dec 21 18:59:42.000 [notice] Bootstrapped 40% (loading_keys): Loading authority key certs
+Dec 21 18:59:43.000 [notice] The current consensus has no exit nodes. Tor can only build internal paths, such as paths to onion services.
+Dec 21 18:59:43.000 [notice] Bootstrapped 45% (requesting_descriptors): Asking for relay descriptors
+Dec 21 18:59:43.000 [notice] I learned some more directory information, but not enough to build a circuit: We need more microdescriptors: we have 0/9578, and can only build 0% of likely paths. (We have 0% of guards bw, 0% of midpoint bw, and 0% of end bw (no exits in consensus, using mid) = 0% of path bw.)
+Dec 21 18:59:44.000 [notice] Bootstrapped 50% (loading_descriptors): Loading relay descriptors
+Dec 21 18:59:44.000 [notice] The current consensus contains exit nodes. Tor can build exit and internal paths.
