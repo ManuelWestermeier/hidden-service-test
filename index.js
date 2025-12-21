@@ -43,7 +43,7 @@ console.log("Starte Tor Hidden Service ...");
 
 // "C:/Program Files/Tor Browser/Browser/TorBrowser/Tor/tor.exe"
 // const tor = spawn("tor", [
-const tor = spawn("tor.exe", [
+const tor = spawn("C:/Program Files/Tor Browser/Browser/TorBrowser/Tor/tor.exe", [
     "--quiet",
     "--HiddenServiceDir", hsDir,
     "--HiddenServicePort", `80 127.0.0.1:${PORT}`,
