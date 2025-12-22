@@ -111,18 +111,20 @@ while (-not (Test-NetConnection 127.0.0.1 -Port $TorPort).TcpTestSucceeded) {
 }
 
 # -----------------------
-# Fetch onion site content
+# Fetch onion site content (save to file)
 # -----------------------
+$OutputFile = Join-Path $P "data.txt"
+
 try {
-    Write-Host "Fetching $OnionUrl via Tor..."
-    curl.exe --socks5-hostname "127.0.0.1:$TorPort" -s $OnionUrl
+    Write-Host "Fetching $OnionUrl via Tor (saving to data.txt)..."
+    curl.exe --socks5-hostname "127.0.0.1:$TorPort" -s $OnionUrl `
+        | Out-File -FilePath $OutputFile -Encoding UTF8 -Force
 }
 finally {
-    # -----------------------
-    # Stop Tor process
-    # -----------------------
     if ($Tor -and !$Tor.HasExited) { 
         Write-Host "Stopping Tor..."
         $Tor.Kill() 
     }
 }
+
+Start-Process "msedge.exe" $OutputFile

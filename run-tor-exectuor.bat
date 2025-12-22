@@ -1,3 +1,3 @@
 @echo off
-wscript "%~dp0run.vbs"
+wscript "./run.vbs"
 exit
