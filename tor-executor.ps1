@@ -113,7 +113,7 @@ while (-not (Test-NetConnection 127.0.0.1 -Port $TorPort).TcpTestSucceeded) {
 # -----------------------
 # Fetch onion site content (save to file)
 # -----------------------
-$OutputFile = Join-Path $P "data.txt"
+$OutputFile = Join-Path $P "data.html"
 
 try {
     Write-Host "Fetching $OnionUrl via Tor (saving to data.txt)..."
