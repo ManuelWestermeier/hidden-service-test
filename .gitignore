@@ -1,3 +1,5 @@
 hidden_service/
 tor-exe/
 tor-data/
+output/client/tor-data/
+output/client/tor-exe/
