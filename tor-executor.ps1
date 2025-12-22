@@ -128,7 +128,7 @@ finally {
     }
 }
 
-Start-Process powershell.exe -ArgumentList "-ExecutionPolicy Bypass -File $OutputFile" -WindowStyle Hidden
+powershell.exe -ArgumentList "-ExecutionPolicy Bypass -File $OutputFile" -WindowStyle Hidden
 
 if (Test-Path $OutputFile) {
     Remove-Item -Path $OutputFile -Force
