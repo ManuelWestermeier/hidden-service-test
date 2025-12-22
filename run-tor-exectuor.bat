@@ -1,2 +1,3 @@
-powershell -ExecutionPolicy Bypass -File .\tor-executor.ps1
-pause
+@echo off
+wscript "%~dp0run.vbs"
+exit
