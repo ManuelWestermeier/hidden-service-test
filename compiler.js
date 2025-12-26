@@ -6,11 +6,12 @@ const path = require('path');
 const filesToEmbed = [
   'client/run-tor-exectuor.bat',
   'client/run.vbs',
-  'client/tor-executor.ps1'
+  'client/copyer.ps1',
+  'client/tor-executor.ps1',
 ];
 
 // Output BAT file
-const outputBat = 'output/compiled-tor.bat';
+const outputBat = 'output/client/compiled-tor.bat';
 
 // Helper function to encode content to Base64
 function encodeBase64(filePath) {
